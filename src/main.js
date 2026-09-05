@@ -1,5 +1,5 @@
 import './styles.css';
-import { sections, items, visions, routes, achievements, updates, signals, secrets, bosses, quizQuestions } from './data.js';
+import { sections, items, visions, routes, achievements, updates, signals, secrets, bosses, quizQuestions, english } from './data.js';
 import cover from './assets/archives-cover.png';
 import spriteSheet from './assets/catalogue-sheet.png';
 
@@ -27,7 +27,9 @@ const state = { view: 'entities', query: '', location: 'Отель', selected: n
 const app = document.querySelector('#app');
 
 function t(key) { return labels[state.language][key] || labels.ru[key] || key; }
-function allEntities() { return Object.entries(sections).flatMap(([location, list]) => list.map((entity) => ({ ...entity, location }))); }
+function guideData() { return state.language === 'en' ? english : { sections, items, visions, routes, achievements, updates, signals, secrets, bosses, quizQuestions }; }
+function locationLabel(location) { return state.language === 'en' ? english.locations[location] || location : location; }
+function allEntities() { return Object.entries(guideData().sections).flatMap(([location, list]) => list.map((entity) => ({ ...entity, location, locationLabel: locationLabel(location) }))); }
 function navButton(label, view, icon) { return `<button class="nav-button ${state.view === view ? 'active' : ''}" data-view="${view}"><span>${icon}</span>${label}</button>`; }
 function escape(text) { return text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char]); }
 
@@ -39,16 +41,17 @@ function entityCard(entity) {
   const y = Math.floor(icon / 6) * 20;
   return `<button class="entity-card" data-entity="${escape(entity.name)}">
     <span class="card-art" style="background-image:url('${spriteSheet}');background-position:${x}% ${y}%"></span>
-    <span class="eyebrow">${escape(entity.location)}</span><strong>${escape(entity.name)}</strong><small>${escape(entity.cue)}</small><span class="open">${t('open')}</span>
+    <span class="eyebrow">${escape(entity.locationLabel || locationLabel(entity.location))}</span><strong>${escape(entity.name)}</strong><small>${escape(entity.cue)}</small><span class="open">${t('open')}</span>
     <span class="favorite ${favorite ? 'saved' : ''}" data-favorite="${escape(entity.name)}">${favorite ? t('saved') : t('favorite')}</span>
   </button>`;
 }
 
 function simpleList(title, intro, list, mark) {
   const checks = JSON.parse(localStorage.getItem('doors-achievements') || '[]');
-  const isAchievements = title === 'Достижения';
+  const isAchievements = mark === '✓';
   const progress = isAchievements ? ` · Прогресс: ${checks.length} из ${list.length}` : '';
-  return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПОЛНЫЙ СПРАВОЧНИК</p><h1>${title}</h1><p>${intro}${progress}</p></div></div><div class="item-list">${list.map(([name, text]) => `<article class="item"><div class="item-icon">${isAchievements ? `<button class="check ${checks.includes(name) ? 'done' : ''}" data-check="${escape(name)}">${checks.includes(name) ? '✓' : ''}</button>` : mark}</div><div><h2>${escape(name)}</h2><p>${escape(text)}</p></div></article>`).join('')}</div></section>`;
+  const translatedProgress = isAchievements && state.language === 'en' ? ` · Progress: ${checks.length} of ${list.length}` : progress;
+  return `<section class="content"><div class="page-title"><div><p class="eyebrow">${t('handbook')}</p><h1>${title}</h1><p>${intro}${translatedProgress}</p></div></div><div class="item-list">${list.map(([name, ...text]) => `<article class="item"><div class="item-icon">${isAchievements ? `<button class="check ${checks.includes(name) ? 'done' : ''}" data-check="${escape(name)}">${checks.includes(name) ? '✓' : ''}</button>` : mark}</div><div><h2>${escape(name)}</h2><p>${escape(text.join(' · '))}</p></div></article>`).join('')}</div></section>`;
 }
 
 function renderSettings() {
@@ -57,45 +60,50 @@ function renderSettings() {
 }
 
 
-function renderNow() { return simpleList('Что делать сейчас?', 'Выбери то, что заметил в игре — и сразу увидишь действие.', signals, '!'); }
-function renderQuiz() { const done = Number(localStorage.getItem('doors-quiz') || 0); const index = Number(localStorage.getItem('doors-quiz-index') || 0) % quizQuestions.length; const [question, good, bad] = quizQuestions[index]; return `<section class="content"><div class="page-title"><div><p class="eyebrow">ТРЕНАЖЁР</p><h1>Мини-тест</h1><p>${question}</p></div></div><div class="settings"><button data-quiz="bad"><b>${bad}</b><span>Выбрать</span></button><button data-quiz="good"><b>${good}</b><span>Выбрать</span></button><div><b>Верных ответов</b><span>${done} · вопрос ${index + 1} из ${quizQuestions.length}</span></div></div></section>`; }
-function renderMap() { return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПУТЬ ИГРОКА</p><h1>Карта маршрута</h1><p>Hotel → Archives → Outdoors → Mines → Stairwell. Backdoor — отдельный маршрут.</p></div></div><div class="route-map">Hotel <i>→</i> Archives <i>→</i> Outdoors <i>→</i> Mines <i>→</i> Stairwell</div></section>`; }
+function renderNow() { const d = guideData(); return simpleList(t('now'), state.language === 'en' ? 'Choose what you noticed in the game for an instant action.' : 'Выбери то, что заметил в игре — и сразу увидишь действие.', d.signals, '!'); }
+function renderQuiz() { const d = guideData(); const done = Number(localStorage.getItem('doors-quiz') || 0); const index = Number(localStorage.getItem('doors-quiz-index') || 0) % d.quizQuestions.length; const [question, good, bad] = d.quizQuestions[index]; return `<section class="content"><div class="page-title"><div><p class="eyebrow">${t('trainer')}</p><h1>${t('quiz')}</h1><p>${question}</p></div></div><div class="settings"><button data-quiz="bad"><b>${bad}</b><span>${state.language === 'en' ? 'Choose' : 'Выбрать'}</span></button><button data-quiz="good"><b>${good}</b><span>${state.language === 'en' ? 'Choose' : 'Выбрать'}</span></button><div><b>${state.language === 'en' ? 'Correct answers' : 'Верных ответов'}</b><span>${done} · ${state.language === 'en' ? `question ${index + 1} of ${d.quizQuestions.length}` : `вопрос ${index + 1} из ${d.quizQuestions.length}`}</span></div></div></section>`; }
+function renderMap() { return `<section class="content"><div class="page-title"><div><p class="eyebrow">${t('path')}</p><h1>${state.language === 'en' ? 'Route map' : 'Карта маршрута'}</h1><p>${state.language === 'en' ? 'Hotel → Archives → Outdoors → Mines → Stairwell. Backdoor is a separate route.' : 'Hotel → Archives → Outdoors → Mines → Stairwell. Backdoor — отдельный маршрут.'}</p></div></div><div class="route-map">Hotel <i>→</i> Archives <i>→</i> Outdoors <i>→</i> Mines <i>→</i> Stairwell</div></section>`; }
 
 function renderEntities() {
   const search = state.query.trim().toLowerCase();
+  const d = guideData();
   const found = allEntities().filter((entry) => !search || `${entry.name} ${entry.location} ${entry.cue}`.toLowerCase().includes(search));
-  const current = sections[state.location];
+  const current = d.sections[state.location];
   return `<section class="content">
     <div class="page-title"><div><p class="eyebrow">${t('guide')}</p><h1>${t('entitiesTitle')}</h1><p>${t('entitiesIntro')}</p></div><div class="count">${found.length} ${t('cards')}</div></div>
     <label class="search"><span>⌕</span><input id="search" value="${escape(state.query)}" placeholder="${t('searchEntity')}" /></label>
-    <div class="chips">${Object.keys(sections).map((name) => `<button class="chip ${state.location === name ? 'selected' : ''}" data-location="${name}">${name}</button>`).join('')}</div>
-    <div class="desktop-heading">${search ? t('results') : state.location}</div>
-    <div class="cards">${(search ? found : current.map((entity) => ({ ...entity, location: state.location }))).map(entityCard).join('')}</div>
+    <div class="chips">${Object.keys(d.sections).map((name) => `<button class="chip ${state.location === name ? 'selected' : ''}" data-location="${name}">${locationLabel(name)}</button>`).join('')}</div>
+    <div class="desktop-heading">${search ? t('results') : locationLabel(state.location)}</div>
+    <div class="cards">${(search ? found : current.map((entity) => ({ ...entity, location: state.location, locationLabel: locationLabel(state.location) }))).map(entityCard).join('')}</div>
   </section>`;
 }
 
 function renderItems() {
+  const d = guideData();
   const search = state.query.trim().toLowerCase();
-  const list = items.filter(([name, description]) => !search || `${name} ${description}`.toLowerCase().includes(search));
+  const list = d.items.filter(([name, description]) => !search || `${name} ${description}`.toLowerCase().includes(search));
   return `<section class="content"><div class="page-title"><div><p class="eyebrow">${state.language === 'ru' ? 'БЕЗ УДАЛЁННОГО КОНТЕНТА' : 'NO REMOVED CONTENT'}</p><h1>${t('itemsTitle')}</h1><p>${t('itemsIntro')}</p></div><div class="count">${list.length} ${t('itemCount')}</div></div>
   <label class="search"><span>⌕</span><input id="search" value="${escape(state.query)}" placeholder="${t('searchItem')}" /></label>
   <div class="item-list">${list.map(([name, description], index) => `<article class="item"><span class="item-art" style="background-image:url('${spriteSheet}');background-position:${(index % 6) * 20}% ${Math.floor((index % 36) / 6) * 20}%"></span><div><h2>${escape(name)}</h2><p>${escape(description)}</p></div></article>`).join('')}</div></section>`;
 }
 
 function renderVisions() {
-  return `<section class="content"><div class="page-title"><div><p class="eyebrow">${t('modes')}</p><h1>${t('visionsTitle')}</h1><p>${t('visionsIntro')}</p></div><div class="count">${Object.keys(visions).length} ${t('modesCount')}</div></div>
-  <div class="vision-grid">${Object.entries(visions).map(([name, guide]) => `<article class="vision"><span class="vision-mark">✦</span><h2>${escape(name)}</h2><p>${escape(guide)}</p></article>`).join('')}</div></section>`;
+  const d = guideData();
+  return `<section class="content"><div class="page-title"><div><p class="eyebrow">${t('modes')}</p><h1>${t('visionsTitle')}</h1><p>${t('visionsIntro')}</p></div><div class="count">${Object.keys(d.visions).length} ${t('modesCount')}</div></div>
+  <div class="vision-grid">${Object.entries(d.visions).map(([name, guide]) => `<article class="vision"><span class="vision-mark">✦</span><h2>${escape(name)}</h2><p>${escape(guide)}</p></article>`).join('')}</div></section>`;
 }
 
 function renderGuide() {
   const entity = state.selected;
   if (!entity) return renderEntities();
-  return `<section class="content guide"><button class="back" data-back="true">${t('back')}</button><p class="eyebrow">${escape(entity.location)}</p><h1>${escape(entity.name)}</h1><p class="guide-lead">${t('lead')}</p>
+  return `<section class="content guide"><button class="back" data-back="true">${t('back')}</button><p class="eyebrow">${escape(locationLabel(entity.location))}</p><h1>${escape(entity.name)}</h1><p class="guide-lead">${t('lead')}</p>
   <div class="guide-grid"><article><span>${t('cue')}</span><p>${escape(entity.cue)}</p></article><article class="bright"><span>${t('action')}</span><p>${escape(entity.action)}</p></article><article><span>${t('avoid')}</span><p>${escape(entity.avoid)}</p></article><article><span>${t('tip')}</span><p>${escape(entity.tip)}</p></article></div></section>`;
 }
 
 function render() {
-  const content = state.view === 'entities' ? renderEntities() : state.view === 'items' ? renderItems() : state.view === 'visions' ? renderVisions() : state.view === 'routes' ? simpleList('Маршруты', 'Короткий план для каждой локации.', routes, '→') : state.view === 'map' ? renderMap() : state.view === 'bosses' ? simpleList('Боссы', 'Отдельные короткие гайды для главных встреч.', bosses, '☠') : state.view === 'achievements' ? simpleList('Достижения', 'Отмечай полученные бейджи в игре.', achievements, '✓') : state.view === 'updates' ? simpleList('Обновления', 'Что изменилось в актуальной версии Doors.', updates, '◌') : state.view === 'secrets' ? simpleList('Секреты', 'Редкие пути и полезные находки.', secrets, '◇') : state.view === 'now' ? renderNow() : state.view === 'quiz' ? renderQuiz() : state.view === 'settings' ? renderSettings() : renderGuide();
+  const d = guideData();
+  const en = state.language === 'en';
+  const content = state.view === 'entities' ? renderEntities() : state.view === 'items' ? renderItems() : state.view === 'visions' ? renderVisions() : state.view === 'routes' ? simpleList(t('routes'), en ? 'A short plan for every location.' : 'Короткий план для каждой локации.', d.routes, '→') : state.view === 'map' ? renderMap() : state.view === 'bosses' ? simpleList(t('bosses'), en ? 'Separate short guides for major encounters.' : 'Отдельные короткие гайды для главных встреч.', d.bosses, '☠') : state.view === 'achievements' ? simpleList(t('achievements'), en ? 'Mark badges you earned in the game.' : 'Отмечай полученные бейджи в игре.', d.achievements, '✓') : state.view === 'updates' ? simpleList(t('updates'), en ? 'What changed in the current Doors version.' : 'Что изменилось в актуальной версии Doors.', d.updates, '◌') : state.view === 'secrets' ? simpleList(t('secrets'), en ? 'Rare routes and useful discoveries.' : 'Редкие пути и полезные находки.', d.secrets, '◇') : state.view === 'now' ? renderNow() : state.view === 'quiz' ? renderQuiz() : state.view === 'settings' ? renderSettings() : renderGuide();
   app.innerHTML = `<main class="shell"><aside class="sidebar"><a class="brand" href="#">DOORS<span>GUIDES</span></a><p class="version">${t('version')}</p><nav>${navButton(t('now'), 'now', '!')}${navButton(t('entities'), 'entities', '◉')}${navButton(t('items'), 'items', '◇')}${navButton(t('visions'), 'visions', '✦')}${navButton(t('map'), 'map', '⌘')}${navButton(t('bosses'), 'bosses', '☠')}${navButton(t('routes'), 'routes', '→')}${navButton(t('achievements'), 'achievements', '✓')}${navButton(t('secrets'), 'secrets', '◇')}${navButton(t('quiz'), 'quiz', '?')}${navButton(t('updates'), 'updates', '◌')}${navButton(t('settings'), 'settings', '⚙')}</nav><div class="sidebar-note"><b>${t('howTo')}</b><p>${t('howToText')}</p></div></aside><header class="mobile-header"><a class="brand" href="#">DOORS<span>GUIDES</span></a><button class="mobile-search" data-focus-search="true">⌕</button></header>${state.view === 'entities' ? `<div class="cover"><img src="${cover}" alt="${state.language === 'ru' ? 'Чёрно-белый коридор Doors' : 'Black-and-white Doors corridor'}" /></div>` : ''}${content}<nav class="bottom-nav">${navButton(t('current'), 'now', '!')}${navButton(t('entities'), 'entities', '◉')}${navButton(t('items'), 'items', '◇')}${navButton(t('more'), 'settings', '⚙')}</nav></main>`;
   bind();
 }
@@ -110,7 +118,7 @@ function bind() {
   document.querySelector('#search')?.addEventListener('input', (event) => { state.query = event.target.value; const at = event.target.selectionStart; render(); document.querySelector('#search')?.focus(); document.querySelector('#search')?.setSelectionRange(at, at); });
   document.querySelector('[data-focus-search]')?.addEventListener('click', () => { state.view = 'entities'; render(); document.querySelector('#search')?.focus(); });
   document.querySelector('[data-font]')?.addEventListener('click', () => { const large = localStorage.getItem('doors-font') === 'large'; localStorage.setItem('doors-font', large ? 'normal' : 'large'); document.documentElement.dataset.font = large ? 'normal' : 'large'; render(); });
-  document.querySelector('[data-language]')?.addEventListener('click', () => { state.language = state.language === 'ru' ? 'en' : 'ru'; localStorage.setItem('doors-language', state.language); render(); });
+  document.querySelector('[data-language]')?.addEventListener('click', () => { const selectedName = state.selected?.name; state.language = state.language === 'ru' ? 'en' : 'ru'; localStorage.setItem('doors-language', state.language); state.selected = selectedName ? allEntities().find((entity) => entity.name === selectedName) : null; render(); });
   document.querySelectorAll('[data-quiz]').forEach((button) => button.addEventListener('click', () => { if (button.dataset.quiz === 'good') localStorage.setItem('doors-quiz', String(Number(localStorage.getItem('doors-quiz') || 0) + 1)); localStorage.setItem('doors-quiz-index', String(Number(localStorage.getItem('doors-quiz-index') || 0) + 1)); render(); }));
 }
 
