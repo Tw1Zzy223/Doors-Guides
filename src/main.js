@@ -1,5 +1,5 @@
 import './styles.css';
-import { sections, items, visions, routes, achievements, updates, signals, secrets } from './data.js';
+import { sections, items, visions, routes, achievements, updates, signals, secrets, bosses } from './data.js';
 import cover from './assets/archives-cover.png';
 
 const state = { view: 'entities', query: '', location: 'Отель', selected: null, account: JSON.parse(localStorage.getItem('doors-account') || 'null') };
@@ -37,6 +37,7 @@ function renderAccount() {
 
 function renderNow() { return simpleList('Что делать сейчас?', 'Выбери то, что заметил в игре — и сразу увидишь действие.', signals, '!'); }
 function renderQuiz() { const done = Number(localStorage.getItem('doors-quiz') || 0); return `<section class="content"><div class="page-title"><div><p class="eyebrow">ТРЕНАЖЁР</p><h1>Мини-тест</h1><p>Сигнал: свет мигает. Что делать?</p></div></div><div class="settings"><button data-quiz="bad"><b>Продолжить обыскивать комнату</b><span>Неверно</span></button><button data-quiz="good"><b>Найти укрытие</b><span>Верно</span></button><div><b>Верных ответов</b><span>${done}</span></div></div></section>`; }
+function renderMap() { return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПУТЬ ИГРОКА</p><h1>Карта маршрута</h1><p>Hotel → Archives → Outdoors → Mines → Stairwell. Backdoor — отдельный маршрут.</p></div></div><div class="route-map">Hotel <i>→</i> Archives <i>→</i> Outdoors <i>→</i> Mines <i>→</i> Stairwell</div></section>`; }
 
 function renderEntities() {
   const search = state.query.trim().toLowerCase();
