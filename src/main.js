@@ -26,7 +26,8 @@ function entityCard(entity) {
 function simpleList(title, intro, list, mark) {
   const checks = JSON.parse(localStorage.getItem('doors-achievements') || '[]');
   const isAchievements = title === 'Достижения';
-  return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПОЛНЫЙ СПРАВОЧНИК</p><h1>${title}</h1><p>${intro}</p></div></div><div class="item-list">${list.map(([name, text]) => `<article class="item"><div class="item-icon">${isAchievements ? `<button class="check ${checks.includes(name) ? 'done' : ''}" data-check="${escape(name)}">${checks.includes(name) ? '✓' : ''}</button>` : mark}</div><div><h2>${escape(name)}</h2><p>${escape(text)}</p></div></article>`).join('')}</div></section>`;
+  const progress = isAchievements ? ` · Прогресс: ${checks.length} из ${list.length}` : '';
+  return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПОЛНЫЙ СПРАВОЧНИК</p><h1>${title}</h1><p>${intro}${progress}</p></div></div><div class="item-list">${list.map(([name, text]) => `<article class="item"><div class="item-icon">${isAchievements ? `<button class="check ${checks.includes(name) ? 'done' : ''}" data-check="${escape(name)}">${checks.includes(name) ? '✓' : ''}</button>` : mark}</div><div><h2>${escape(name)}</h2><p>${escape(text)}</p></div></article>`).join('')}</div></section>`;
 }
 
 function renderSettings() {
@@ -57,7 +58,7 @@ function renderItems() {
   const list = items.filter(([name, description]) => !search || `${name} ${description}`.toLowerCase().includes(search));
   return `<section class="content"><div class="page-title"><div><p class="eyebrow">БЕЗ УДАЛЁННОГО КОНТЕНТА</p><h1>Предметы</h1><p>Только действующие предметы после The Archives.</p></div><div class="count">${list.length} предмет</div></div>
   <label class="search"><span>⌕</span><input id="search" value="${escape(state.query)}" placeholder="Найти предмет" /></label>
-  <div class="item-list">${list.map(([name, description]) => `<article class="item"><div class="item-icon">◇</div><div><h2>${escape(name)}</h2><p>${escape(description)}</p></div></article>`).join('')}</div></section>`;
+  <div class="item-list">${list.map(([name, description], index) => `<article class="item"><span class="item-art" style="background-image:url('${spriteSheet}');background-position:${(index % 4) * 33.333}% ${Math.floor((index % 16) / 4) * 33.333}%"></span><div><h2>${escape(name)}</h2><p>${escape(description)}</p></div></article>`).join('')}</div></section>`;
 }
 
 function renderVisions() {
