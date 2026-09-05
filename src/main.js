@@ -1,5 +1,5 @@
 import './styles.css';
-import { sections, items, visions, routes, achievements, updates, signals, secrets, bosses } from './data.js';
+import { sections, items, visions, routes, achievements, updates, signals, secrets, bosses, quizQuestions } from './data.js';
 import cover from './assets/archives-cover.png';
 import spriteSheet from './assets/entity-item-sheet.png';
 
@@ -37,7 +37,7 @@ function renderSettings() {
 
 
 function renderNow() { return simpleList('Что делать сейчас?', 'Выбери то, что заметил в игре — и сразу увидишь действие.', signals, '!'); }
-function renderQuiz() { const done = Number(localStorage.getItem('doors-quiz') || 0); return `<section class="content"><div class="page-title"><div><p class="eyebrow">ТРЕНАЖЁР</p><h1>Мини-тест</h1><p>Сигнал: свет мигает. Что делать?</p></div></div><div class="settings"><button data-quiz="bad"><b>Продолжить обыскивать комнату</b><span>Неверно</span></button><button data-quiz="good"><b>Найти укрытие</b><span>Верно</span></button><div><b>Верных ответов</b><span>${done}</span></div></div></section>`; }
+function renderQuiz() { const done = Number(localStorage.getItem('doors-quiz') || 0); const index = Number(localStorage.getItem('doors-quiz-index') || 0) % quizQuestions.length; const [question, good, bad] = quizQuestions[index]; return `<section class="content"><div class="page-title"><div><p class="eyebrow">ТРЕНАЖЁР</p><h1>Мини-тест</h1><p>${question}</p></div></div><div class="settings"><button data-quiz="bad"><b>${bad}</b><span>Выбрать</span></button><button data-quiz="good"><b>${good}</b><span>Выбрать</span></button><div><b>Верных ответов</b><span>${done} · вопрос ${index + 1} из ${quizQuestions.length}</span></div></div></section>`; }
 function renderMap() { return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПУТЬ ИГРОКА</p><h1>Карта маршрута</h1><p>Hotel → Archives → Outdoors → Mines → Stairwell. Backdoor — отдельный маршрут.</p></div></div><div class="route-map">Hotel <i>→</i> Archives <i>→</i> Outdoors <i>→</i> Mines <i>→</i> Stairwell</div></section>`; }
 
 function renderEntities() {
@@ -89,7 +89,7 @@ function bind() {
   document.querySelector('#search')?.addEventListener('input', (event) => { state.query = event.target.value; const at = event.target.selectionStart; render(); document.querySelector('#search')?.focus(); document.querySelector('#search')?.setSelectionRange(at, at); });
   document.querySelector('[data-focus-search]')?.addEventListener('click', () => { state.view = 'entities'; render(); document.querySelector('#search')?.focus(); });
   document.querySelector('[data-font]')?.addEventListener('click', () => { const large = localStorage.getItem('doors-font') === 'large'; localStorage.setItem('doors-font', large ? 'normal' : 'large'); document.documentElement.dataset.font = large ? 'normal' : 'large'; render(); });
-  document.querySelectorAll('[data-quiz]').forEach((button) => button.addEventListener('click', () => { if (button.dataset.quiz === 'good') localStorage.setItem('doors-quiz', String(Number(localStorage.getItem('doors-quiz') || 0) + 1)); render(); }));
+  document.querySelectorAll('[data-quiz]').forEach((button) => button.addEventListener('click', () => { if (button.dataset.quiz === 'good') localStorage.setItem('doors-quiz', String(Number(localStorage.getItem('doors-quiz') || 0) + 1)); localStorage.setItem('doors-quiz-index', String(Number(localStorage.getItem('doors-quiz-index') || 0) + 1)); render(); }));
 }
 
 document.documentElement.dataset.font = localStorage.getItem('doors-font') || 'normal';
