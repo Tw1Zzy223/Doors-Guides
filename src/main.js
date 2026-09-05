@@ -1,5 +1,5 @@
 import './styles.css';
-import { sections, items, visions, routes, achievements, updates } from './data.js';
+import { sections, items, visions, routes, achievements, updates, signals, secrets } from './data.js';
 import cover from './assets/archives-cover.png';
 
 const state = { view: 'entities', query: '', location: 'Отель', selected: null, account: JSON.parse(localStorage.getItem('doors-account') || 'null') };
@@ -35,6 +35,9 @@ function renderAccount() {
   return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПОДКЛЮЧЁННЫЙ ПРОФИЛЬ</p><h1>${escape(state.account.nickname)}</h1><p>Аккаунт запомнен на этом устройстве.</p></div></div><div class="profile-card"><div class="avatar">R</div><div><b>${escape(state.account.nickname)}</b><p>Локальный прогресс: ${completed} из ${achievements.length} отмеченных достижений.</p><p class="muted">Публичные бейджи Roblox появятся здесь после подключения облачной синхронизации.</p></div></div><button class="danger" data-unlink="true">Отвязать аккаунт от приложения</button></section>`;
 }
 
+function renderNow() { return simpleList('Что делать сейчас?', 'Выбери то, что заметил в игре — и сразу увидишь действие.', signals, '!'); }
+function renderQuiz() { const done = Number(localStorage.getItem('doors-quiz') || 0); return `<section class="content"><div class="page-title"><div><p class="eyebrow">ТРЕНАЖЁР</p><h1>Мини-тест</h1><p>Сигнал: свет мигает. Что делать?</p></div></div><div class="settings"><button data-quiz="bad"><b>Продолжить обыскивать комнату</b><span>Неверно</span></button><button data-quiz="good"><b>Найти укрытие</b><span>Верно</span></button><div><b>Верных ответов</b><span>${done}</span></div></div></section>`; }
+
 function renderEntities() {
   const search = state.query.trim().toLowerCase();
   const found = allEntities().filter((entry) => !search || `${entry.name} ${entry.location} ${entry.cue}`.toLowerCase().includes(search));
@@ -69,8 +72,8 @@ function renderGuide() {
 }
 
 function render() {
-  const content = state.view === 'entities' ? renderEntities() : state.view === 'items' ? renderItems() : state.view === 'visions' ? renderVisions() : state.view === 'routes' ? simpleList('Маршруты', 'Короткий план для каждой локации.', routes, '→') : state.view === 'achievements' ? simpleList('Достижения', 'Отмечай полученные бейджи в игре.', achievements, '✓') : state.view === 'updates' ? simpleList('Обновления', 'Что изменилось в актуальной версии Doors.', updates, '◌') : state.view === 'settings' ? renderSettings() : state.view === 'account' ? renderAccount() : renderGuide();
-  app.innerHTML = `<main class="shell"><aside class="sidebar"><a class="brand" href="#">DOORS<span>GUIDES</span></a><p class="version">VERSION 1.0 · ARCHIVES</p><nav>${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Visions', 'visions', '✦')}${navButton('Маршруты', 'routes', '→')}${navButton('Достижения', 'achievements', '✓')}${navButton('Профиль', 'account', '♙')}${navButton('Обновления', 'updates', '◌')}${navButton('Настройки', 'settings', '⚙')}</nav><div class="sidebar-note"><b>Как пользоваться</b><p>Выбери сущность — увидишь признак, действие, ошибку и совет.</p></div></aside><header class="mobile-header"><a class="brand" href="#">DOORS<span>GUIDES</span></a><button class="mobile-search" data-focus-search="true">⌕</button></header>${state.view === 'entities' ? `<div class="cover"><img src="${cover}" alt="Чёрно-белый коридор Doors" /></div>` : ''}${content}<nav class="bottom-nav">${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Профиль', 'account', '♙')}${navButton('Ещё', 'settings', '⚙')}</nav></main>`;
+  const content = state.view === 'entities' ? renderEntities() : state.view === 'items' ? renderItems() : state.view === 'visions' ? renderVisions() : state.view === 'routes' ? simpleList('Маршруты', 'Короткий план для каждой локации.', routes, '→') : state.view === 'achievements' ? simpleList('Достижения', 'Отмечай полученные бейджи в игре.', achievements, '✓') : state.view === 'updates' ? simpleList('Обновления', 'Что изменилось в актуальной версии Doors.', updates, '◌') : state.view === 'secrets' ? simpleList('Секреты', 'Редкие пути и полезные находки.', secrets, '◇') : state.view === 'now' ? renderNow() : state.view === 'quiz' ? renderQuiz() : state.view === 'settings' ? renderSettings() : state.view === 'account' ? renderAccount() : renderGuide();
+  app.innerHTML = `<main class="shell"><aside class="sidebar"><a class="brand" href="#">DOORS<span>GUIDES</span></a><p class="version">VERSION 1.0 · ARCHIVES</p><nav>${navButton('Что делать?', 'now', '!')}${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Visions', 'visions', '✦')}${navButton('Маршруты', 'routes', '→')}${navButton('Достижения', 'achievements', '✓')}${navButton('Секреты', 'secrets', '◇')}${navButton('Мини-тест', 'quiz', '?')}${navButton('Профиль', 'account', '♙')}${navButton('Обновления', 'updates', '◌')}${navButton('Настройки', 'settings', '⚙')}</nav><div class="sidebar-note"><b>Как пользоваться</b><p>Выбери сущность — увидишь признак, действие, ошибку и совет.</p></div></aside><header class="mobile-header"><a class="brand" href="#">DOORS<span>GUIDES</span></a><button class="mobile-search" data-focus-search="true">⌕</button></header>${state.view === 'entities' ? `<div class="cover"><img src="${cover}" alt="Чёрно-белый коридор Doors" /></div>` : ''}${content}<nav class="bottom-nav">${navButton('Сейчас', 'now', '!')}${navButton('Сущности', 'entities', '◉')}${navButton('Профиль', 'account', '♙')}${navButton('Ещё', 'settings', '⚙')}</nav></main>`;
   bind();
 }
 
@@ -86,6 +89,7 @@ function bind() {
   document.querySelector('[data-font]')?.addEventListener('click', () => { const large = localStorage.getItem('doors-font') === 'large'; localStorage.setItem('doors-font', large ? 'normal' : 'large'); document.documentElement.dataset.font = large ? 'normal' : 'large'; render(); });
   document.querySelector('#link-account')?.addEventListener('submit', (event) => { event.preventDefault(); const nickname = new FormData(event.currentTarget).get('nickname').trim(); state.account = { nickname, linkedAt: new Date().toISOString() }; localStorage.setItem('doors-account', JSON.stringify(state.account)); render(); });
   document.querySelector('[data-unlink]')?.addEventListener('click', () => { localStorage.removeItem('doors-account'); state.account = null; render(); });
+  document.querySelectorAll('[data-quiz]').forEach((button) => button.addEventListener('click', () => { if (button.dataset.quiz === 'good') localStorage.setItem('doors-quiz', String(Number(localStorage.getItem('doors-quiz') || 0) + 1)); render(); }));
 }
 
 document.documentElement.dataset.font = localStorage.getItem('doors-font') || 'normal';
