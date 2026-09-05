@@ -1,6 +1,7 @@
 import './styles.css';
 import { sections, items, visions, routes, achievements, updates, signals, secrets, bosses } from './data.js';
 import cover from './assets/archives-cover.png';
+import spriteSheet from './assets/entity-item-sheet.png';
 
 const state = { view: 'entities', query: '', location: 'Отель', selected: null };
 const app = document.querySelector('#app');
@@ -12,7 +13,11 @@ function escape(text) { return text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;
 function entityCard(entity) {
   const favorites = JSON.parse(localStorage.getItem('doors-favorites') || '[]');
   const favorite = favorites.includes(entity.name);
+  const icon = [...entity.name].reduce((sum, char) => sum + char.codePointAt(0), 0) % 16;
+  const x = (icon % 4) * 33.333;
+  const y = Math.floor(icon / 4) * 33.333;
   return `<button class="entity-card" data-entity="${escape(entity.name)}">
+    <span class="card-art" style="background-image:url('${spriteSheet}');background-position:${x}% ${y}%"></span>
     <span class="eyebrow">${escape(entity.location)}</span><strong>${escape(entity.name)}</strong><small>${escape(entity.cue)}</small><span class="open">Открыть гайд →</span>
     <span class="favorite ${favorite ? 'saved' : ''}" data-favorite="${escape(entity.name)}">${favorite ? '★ В избранном' : '☆ В избранное'}</span>
   </button>`;
