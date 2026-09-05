@@ -3,9 +3,30 @@ import { sections, items, visions, routes, achievements, updates, signals, secre
 import cover from './assets/archives-cover.png';
 import spriteSheet from './assets/catalogue-sheet.png';
 
-const state = { view: 'entities', query: '', location: 'Отель', selected: null };
+const labels = {
+  ru: {
+    now: 'Что делать?', entities: 'Сущности', items: 'Предметы', visions: 'Visions', map: 'Карта', bosses: 'Боссы', routes: 'Маршруты', achievements: 'Достижения', secrets: 'Секреты', quiz: 'Мини-тест', updates: 'Обновления', settings: 'Настройки',
+    open: 'Открыть гайд →', saved: '★ В избранном', favorite: '☆ В избранное', handbook: 'ПОЛНЫЙ СПРАВОЧНИК', guide: 'АКТУАЛЬНЫЙ СПРАВОЧНИК', app: 'ПРИЛОЖЕНИЕ', trainer: 'ТРЕНАЖЁР', path: 'ПУТЬ ИГРОКА', modes: 'ОСОБЫЕ РЕЖИМЫ',
+    entitiesTitle: 'Сущности', entitiesIntro: 'Выбери локацию или найди сущность по имени.', cards: 'карточек', searchEntity: 'Например, Алма, Rush или Figure', searchItem: 'Найти предмет', results: 'Результаты поиска',
+    itemsTitle: 'Предметы', itemsIntro: 'Только действующие предметы после The Archives.', itemCount: 'предмет', visionsTitle: 'Visions', visionsIntro: 'Быстрые гайды для Battle Mode, Daily Runs и остальных режимов.', modesCount: 'режимов',
+    settingsTitle: 'Настройки', settingsIntro: 'Настрой справочник для удобного чтения.', font: 'Размер текста', large: 'Крупный', normal: 'Обычный', theme: 'Оформление', mono: 'Чёрно-белое', language: 'Язык',
+    back: '← К списку', lead: 'Запомни правило — и эта встреча станет намного спокойнее.', cue: 'ПРИЗНАК', action: 'ЧТО ДЕЛАТЬ', avoid: 'НЕ ДЕЛАЙ ТАК', tip: 'СОВЕТ',
+    howTo: 'Как пользоваться', howToText: 'Выбери сущность — увидишь признак, действие, ошибку и совет.', current: 'Сейчас', more: 'Ещё', version: 'ВЕРСИЯ 0.1.0 · ARCHIVES'
+  },
+  en: {
+    now: 'What now?', entities: 'Entities', items: 'Items', visions: 'Visions', map: 'Map', bosses: 'Bosses', routes: 'Routes', achievements: 'Achievements', secrets: 'Secrets', quiz: 'Mini quiz', updates: 'Updates', settings: 'Settings',
+    open: 'Open guide →', saved: '★ Saved', favorite: '☆ Save', handbook: 'COMPLETE GUIDE', guide: 'CURRENT GUIDE', app: 'APPLICATION', trainer: 'TRAINER', path: 'PLAYER PATH', modes: 'SPECIAL MODES',
+    entitiesTitle: 'Entities', entitiesIntro: 'Choose an area or search for an entity by name.', cards: 'cards', searchEntity: 'For example: Alma, Rush, or Figure', searchItem: 'Search items', results: 'Search results',
+    itemsTitle: 'Items', itemsIntro: 'Active items only, after The Archives.', itemCount: 'items', visionsTitle: 'Visions', visionsIntro: 'Quick guides for Battle Mode, Daily Runs, and other modes.', modesCount: 'modes',
+    settingsTitle: 'Settings', settingsIntro: 'Adjust the guide for comfortable reading.', font: 'Text size', large: 'Large', normal: 'Normal', theme: 'Appearance', mono: 'Black and white', language: 'Language',
+    back: '← Back to list', lead: 'Remember the rule — the encounter becomes much calmer.', cue: 'SIGN', action: 'WHAT TO DO', avoid: 'DO NOT DO THIS', tip: 'TIP',
+    howTo: 'How to use', howToText: 'Choose an entity to see its sign, action, mistake, and tip.', current: 'Now', more: 'More', version: 'VERSION 0.1.0 · ARCHIVES'
+  }
+};
+const state = { view: 'entities', query: '', location: 'Отель', selected: null, language: localStorage.getItem('doors-language') || 'ru' };
 const app = document.querySelector('#app');
 
+function t(key) { return labels[state.language][key] || labels.ru[key] || key; }
 function allEntities() { return Object.entries(sections).flatMap(([location, list]) => list.map((entity) => ({ ...entity, location }))); }
 function navButton(label, view, icon) { return `<button class="nav-button ${state.view === view ? 'active' : ''}" data-view="${view}"><span>${icon}</span>${label}</button>`; }
 function escape(text) { return text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char]); }
@@ -18,8 +39,8 @@ function entityCard(entity) {
   const y = Math.floor(icon / 6) * 20;
   return `<button class="entity-card" data-entity="${escape(entity.name)}">
     <span class="card-art" style="background-image:url('${spriteSheet}');background-position:${x}% ${y}%"></span>
-    <span class="eyebrow">${escape(entity.location)}</span><strong>${escape(entity.name)}</strong><small>${escape(entity.cue)}</small><span class="open">Открыть гайд →</span>
-    <span class="favorite ${favorite ? 'saved' : ''}" data-favorite="${escape(entity.name)}">${favorite ? '★ В избранном' : '☆ В избранное'}</span>
+    <span class="eyebrow">${escape(entity.location)}</span><strong>${escape(entity.name)}</strong><small>${escape(entity.cue)}</small><span class="open">${t('open')}</span>
+    <span class="favorite ${favorite ? 'saved' : ''}" data-favorite="${escape(entity.name)}">${favorite ? t('saved') : t('favorite')}</span>
   </button>`;
 }
 
@@ -32,7 +53,7 @@ function simpleList(title, intro, list, mark) {
 
 function renderSettings() {
   const large = localStorage.getItem('doors-font') === 'large';
-  return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПРИЛОЖЕНИЕ</p><h1>Настройки</h1><p>Настрой справочник для удобного чтения.</p></div></div><div class="settings"><button data-font="true"><b>Размер текста</b><span>${large ? 'Крупный' : 'Обычный'}</span></button><button data-theme="true"><b>Оформление</b><span>Чёрно-белое</span></button><div><b>Язык</b><span>Русский — все гайды написаны по-русски</span></div></div></section>`;
+  return `<section class="content"><div class="page-title"><div><p class="eyebrow">${t('app')}</p><h1>${t('settingsTitle')}</h1><p>${t('settingsIntro')}</p></div></div><div class="settings"><button data-font="true"><b>${t('font')}</b><span>${large ? t('large') : t('normal')}</span></button><button data-theme="true"><b>${t('theme')}</b><span>${t('mono')}</span></button><button data-language="true"><b>${t('language')}</b><span>${state.language === 'ru' ? 'Русский' : 'English'}</span></button></div></section>`;
 }
 
 
@@ -45,10 +66,10 @@ function renderEntities() {
   const found = allEntities().filter((entry) => !search || `${entry.name} ${entry.location} ${entry.cue}`.toLowerCase().includes(search));
   const current = sections[state.location];
   return `<section class="content">
-    <div class="page-title"><div><p class="eyebrow">АКТУАЛЬНЫЙ СПРАВОЧНИК</p><h1>Сущности</h1><p>Выбери локацию или найди сущность по имени.</p></div><div class="count">${found.length} карточек</div></div>
-    <label class="search"><span>⌕</span><input id="search" value="${escape(state.query)}" placeholder="Например, Алма, Rush или Figure" /></label>
+    <div class="page-title"><div><p class="eyebrow">${t('guide')}</p><h1>${t('entitiesTitle')}</h1><p>${t('entitiesIntro')}</p></div><div class="count">${found.length} ${t('cards')}</div></div>
+    <label class="search"><span>⌕</span><input id="search" value="${escape(state.query)}" placeholder="${t('searchEntity')}" /></label>
     <div class="chips">${Object.keys(sections).map((name) => `<button class="chip ${state.location === name ? 'selected' : ''}" data-location="${name}">${name}</button>`).join('')}</div>
-    <div class="desktop-heading">${search ? 'Результаты поиска' : state.location}</div>
+    <div class="desktop-heading">${search ? t('results') : state.location}</div>
     <div class="cards">${(search ? found : current.map((entity) => ({ ...entity, location: state.location }))).map(entityCard).join('')}</div>
   </section>`;
 }
@@ -56,26 +77,26 @@ function renderEntities() {
 function renderItems() {
   const search = state.query.trim().toLowerCase();
   const list = items.filter(([name, description]) => !search || `${name} ${description}`.toLowerCase().includes(search));
-  return `<section class="content"><div class="page-title"><div><p class="eyebrow">БЕЗ УДАЛЁННОГО КОНТЕНТА</p><h1>Предметы</h1><p>Только действующие предметы после The Archives.</p></div><div class="count">${list.length} предмет</div></div>
-  <label class="search"><span>⌕</span><input id="search" value="${escape(state.query)}" placeholder="Найти предмет" /></label>
+  return `<section class="content"><div class="page-title"><div><p class="eyebrow">${state.language === 'ru' ? 'БЕЗ УДАЛЁННОГО КОНТЕНТА' : 'NO REMOVED CONTENT'}</p><h1>${t('itemsTitle')}</h1><p>${t('itemsIntro')}</p></div><div class="count">${list.length} ${t('itemCount')}</div></div>
+  <label class="search"><span>⌕</span><input id="search" value="${escape(state.query)}" placeholder="${t('searchItem')}" /></label>
   <div class="item-list">${list.map(([name, description], index) => `<article class="item"><span class="item-art" style="background-image:url('${spriteSheet}');background-position:${(index % 6) * 20}% ${Math.floor((index % 36) / 6) * 20}%"></span><div><h2>${escape(name)}</h2><p>${escape(description)}</p></div></article>`).join('')}</div></section>`;
 }
 
 function renderVisions() {
-  return `<section class="content"><div class="page-title"><div><p class="eyebrow">ОСОБЫЕ РЕЖИМЫ</p><h1>Visions</h1><p>Быстрые гайды для Battle Mode, Daily Runs и остальных режимов.</p></div><div class="count">${Object.keys(visions).length} режимов</div></div>
+  return `<section class="content"><div class="page-title"><div><p class="eyebrow">${t('modes')}</p><h1>${t('visionsTitle')}</h1><p>${t('visionsIntro')}</p></div><div class="count">${Object.keys(visions).length} ${t('modesCount')}</div></div>
   <div class="vision-grid">${Object.entries(visions).map(([name, guide]) => `<article class="vision"><span class="vision-mark">✦</span><h2>${escape(name)}</h2><p>${escape(guide)}</p></article>`).join('')}</div></section>`;
 }
 
 function renderGuide() {
   const entity = state.selected;
   if (!entity) return renderEntities();
-  return `<section class="content guide"><button class="back" data-back="true">← К списку</button><p class="eyebrow">${escape(entity.location)}</p><h1>${escape(entity.name)}</h1><p class="guide-lead">Запомни правило — и эта встреча станет намного спокойнее.</p>
-  <div class="guide-grid"><article><span>ПРИЗНАК</span><p>${escape(entity.cue)}</p></article><article class="bright"><span>ЧТО ДЕЛАТЬ</span><p>${escape(entity.action)}</p></article><article><span>НЕ ДЕЛАЙ ТАК</span><p>${escape(entity.avoid)}</p></article><article><span>СОВЕТ</span><p>${escape(entity.tip)}</p></article></div></section>`;
+  return `<section class="content guide"><button class="back" data-back="true">${t('back')}</button><p class="eyebrow">${escape(entity.location)}</p><h1>${escape(entity.name)}</h1><p class="guide-lead">${t('lead')}</p>
+  <div class="guide-grid"><article><span>${t('cue')}</span><p>${escape(entity.cue)}</p></article><article class="bright"><span>${t('action')}</span><p>${escape(entity.action)}</p></article><article><span>${t('avoid')}</span><p>${escape(entity.avoid)}</p></article><article><span>${t('tip')}</span><p>${escape(entity.tip)}</p></article></div></section>`;
 }
 
 function render() {
   const content = state.view === 'entities' ? renderEntities() : state.view === 'items' ? renderItems() : state.view === 'visions' ? renderVisions() : state.view === 'routes' ? simpleList('Маршруты', 'Короткий план для каждой локации.', routes, '→') : state.view === 'map' ? renderMap() : state.view === 'bosses' ? simpleList('Боссы', 'Отдельные короткие гайды для главных встреч.', bosses, '☠') : state.view === 'achievements' ? simpleList('Достижения', 'Отмечай полученные бейджи в игре.', achievements, '✓') : state.view === 'updates' ? simpleList('Обновления', 'Что изменилось в актуальной версии Doors.', updates, '◌') : state.view === 'secrets' ? simpleList('Секреты', 'Редкие пути и полезные находки.', secrets, '◇') : state.view === 'now' ? renderNow() : state.view === 'quiz' ? renderQuiz() : state.view === 'settings' ? renderSettings() : renderGuide();
-  app.innerHTML = `<main class="shell"><aside class="sidebar"><a class="brand" href="#">DOORS<span>GUIDES</span></a><p class="version">VERSION 1.0 · ARCHIVES</p><nav>${navButton('Что делать?', 'now', '!')}${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Visions', 'visions', '✦')}${navButton('Карта', 'map', '⌘')}${navButton('Боссы', 'bosses', '☠')}${navButton('Маршруты', 'routes', '→')}${navButton('Достижения', 'achievements', '✓')}${navButton('Секреты', 'secrets', '◇')}${navButton('Мини-тест', 'quiz', '?')}${navButton('Обновления', 'updates', '◌')}${navButton('Настройки', 'settings', '⚙')}</nav><div class="sidebar-note"><b>Как пользоваться</b><p>Выбери сущность — увидишь признак, действие, ошибку и совет.</p></div></aside><header class="mobile-header"><a class="brand" href="#">DOORS<span>GUIDES</span></a><button class="mobile-search" data-focus-search="true">⌕</button></header>${state.view === 'entities' ? `<div class="cover"><img src="${cover}" alt="Чёрно-белый коридор Doors" /></div>` : ''}${content}<nav class="bottom-nav">${navButton('Сейчас', 'now', '!')}${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Ещё', 'settings', '⚙')}</nav></main>`;
+  app.innerHTML = `<main class="shell"><aside class="sidebar"><a class="brand" href="#">DOORS<span>GUIDES</span></a><p class="version">${t('version')}</p><nav>${navButton(t('now'), 'now', '!')}${navButton(t('entities'), 'entities', '◉')}${navButton(t('items'), 'items', '◇')}${navButton(t('visions'), 'visions', '✦')}${navButton(t('map'), 'map', '⌘')}${navButton(t('bosses'), 'bosses', '☠')}${navButton(t('routes'), 'routes', '→')}${navButton(t('achievements'), 'achievements', '✓')}${navButton(t('secrets'), 'secrets', '◇')}${navButton(t('quiz'), 'quiz', '?')}${navButton(t('updates'), 'updates', '◌')}${navButton(t('settings'), 'settings', '⚙')}</nav><div class="sidebar-note"><b>${t('howTo')}</b><p>${t('howToText')}</p></div></aside><header class="mobile-header"><a class="brand" href="#">DOORS<span>GUIDES</span></a><button class="mobile-search" data-focus-search="true">⌕</button></header>${state.view === 'entities' ? `<div class="cover"><img src="${cover}" alt="${state.language === 'ru' ? 'Чёрно-белый коридор Doors' : 'Black-and-white Doors corridor'}" /></div>` : ''}${content}<nav class="bottom-nav">${navButton(t('current'), 'now', '!')}${navButton(t('entities'), 'entities', '◉')}${navButton(t('items'), 'items', '◇')}${navButton(t('more'), 'settings', '⚙')}</nav></main>`;
   bind();
 }
 
@@ -89,6 +110,7 @@ function bind() {
   document.querySelector('#search')?.addEventListener('input', (event) => { state.query = event.target.value; const at = event.target.selectionStart; render(); document.querySelector('#search')?.focus(); document.querySelector('#search')?.setSelectionRange(at, at); });
   document.querySelector('[data-focus-search]')?.addEventListener('click', () => { state.view = 'entities'; render(); document.querySelector('#search')?.focus(); });
   document.querySelector('[data-font]')?.addEventListener('click', () => { const large = localStorage.getItem('doors-font') === 'large'; localStorage.setItem('doors-font', large ? 'normal' : 'large'); document.documentElement.dataset.font = large ? 'normal' : 'large'; render(); });
+  document.querySelector('[data-language]')?.addEventListener('click', () => { state.language = state.language === 'ru' ? 'en' : 'ru'; localStorage.setItem('doors-language', state.language); render(); });
   document.querySelectorAll('[data-quiz]').forEach((button) => button.addEventListener('click', () => { if (button.dataset.quiz === 'good') localStorage.setItem('doors-quiz', String(Number(localStorage.getItem('doors-quiz') || 0) + 1)); localStorage.setItem('doors-quiz-index', String(Number(localStorage.getItem('doors-quiz-index') || 0) + 1)); render(); }));
 }
 
