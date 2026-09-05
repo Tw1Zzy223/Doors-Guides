@@ -83,3 +83,24 @@ export const visions = {
   'Trick Or Treat': 'Сезонный Vision: проверяй эффект конфеты перед использованием.',
   'Cringle’s Workshop': 'Зимний Vision: изучи цель комнаты и распределяй предметы в команде.',
 };
+
+export const routes = [
+  ['Отель', '1–100', 'Ищи ключи, переживи Library с Figure, купи предметы у Джеффа и реши электрощитовую.'],
+  ['Archives', 'A–Z', 'Секторы по 50 дверей: держи 500 золота для Ransom, береги Waiting Ticket для Teller.'],
+  ['Outdoors', 'Маршрут из Hotel', 'Свети под ноги, изучай растения и не теряй команду на открытых участках.'],
+  ['Mines', '101–200', 'Возьми свет, не спеши в Nest и планируй путь к якорям.'],
+  ['Stairwell', 'Секрет у 152', 'Нужен Skeleton Key; смотри под ноги и обращай внимание на телевизоры.'],
+  ['Backdoor', 'Короткий забег', 'Приоритет — рычаги времени, а не золото.'],
+];
+
+export const achievements = [
+  ['Rock Bottom', 'Пройти Hotel.'], ['A Hard Place', 'Пройти Mines.'], ['Back On Track', 'Пройти The Backdoor.'],
+  ['Perfect Memory', 'Пройти Forget-Me-Not без ошибки.'], ['Now Served', 'Пройти Teller с нужным билетом.'],
+  ['Carpet Burn', 'Пережить Bash.'], ['Firewall', 'Избежать или обезвредить Ransom.'], ['Going Up', 'Выйти из Stairwell.'],
+  ['Fried Mushrooms', 'Использовать Fire Alarm против Meld.'], ['Rage Room', 'Обезвредить Noise.'],
+];
+
+export const updates = [
+  ['28 августа 2026', 'The Archives', 'The Rooms заменён на Archives, добавлены новые сущности, предметы, Journal и Stairwell.'],
+  ['Сейчас', 'Версия 1.0 приложения', 'Справочник обновлён под Archives; удалённые Rooms не показываются.'],
+];

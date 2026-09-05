@@ -1,5 +1,6 @@
 import './styles.css';
-import { sections, items, visions } from './data.js';
+import { sections, items, visions, routes, achievements, updates } from './data.js';
+import cover from './assets/archives-cover.png';
 
 const state = { view: 'entities', query: '', location: 'Отель', selected: null };
 const app = document.querySelector('#app');
@@ -9,9 +10,23 @@ function navButton(label, view, icon) { return `<button class="nav-button ${stat
 function escape(text) { return text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char]); }
 
 function entityCard(entity) {
+  const favorites = JSON.parse(localStorage.getItem('doors-favorites') || '[]');
+  const favorite = favorites.includes(entity.name);
   return `<button class="entity-card" data-entity="${escape(entity.name)}">
     <span class="eyebrow">${escape(entity.location)}</span><strong>${escape(entity.name)}</strong><small>${escape(entity.cue)}</small><span class="open">Открыть гайд →</span>
+    <span class="favorite ${favorite ? 'saved' : ''}" data-favorite="${escape(entity.name)}">${favorite ? '★ В избранном' : '☆ В избранное'}</span>
   </button>`;
+}
+
+function simpleList(title, intro, list, mark) {
+  const checks = JSON.parse(localStorage.getItem('doors-achievements') || '[]');
+  const isAchievements = title === 'Достижения';
+  return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПОЛНЫЙ СПРАВОЧНИК</p><h1>${title}</h1><p>${intro}</p></div></div><div class="item-list">${list.map(([name, text]) => `<article class="item"><div class="item-icon">${isAchievements ? `<button class="check ${checks.includes(name) ? 'done' : ''}" data-check="${escape(name)}">${checks.includes(name) ? '✓' : ''}</button>` : mark}</div><div><h2>${escape(name)}</h2><p>${escape(text)}</p></div></article>`).join('')}</div></section>`;
+}
+
+function renderSettings() {
+  const large = localStorage.getItem('doors-font') === 'large';
+  return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПРИЛОЖЕНИЕ</p><h1>Настройки</h1><p>Настрой справочник для удобного чтения.</p></div></div><div class="settings"><button data-font="true"><b>Размер текста</b><span>${large ? 'Крупный' : 'Обычный'}</span></button><button data-theme="true"><b>Оформление</b><span>Чёрно-белое</span></button><div><b>Язык</b><span>Русский — все гайды написаны по-русски</span></div></div></section>`;
 }
 
 function renderEntities() {
@@ -48,8 +63,8 @@ function renderGuide() {
 }
 
 function render() {
-  const content = state.view === 'entities' ? renderEntities() : state.view === 'items' ? renderItems() : state.view === 'visions' ? renderVisions() : renderGuide();
-  app.innerHTML = `<main class="shell"><aside class="sidebar"><a class="brand" href="#">DOORS<span>GUIDES</span></a><p class="version">THE ARCHIVES EDITION</p><nav>${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Visions', 'visions', '✦')}</nav><div class="sidebar-note"><b>Как пользоваться</b><p>Выбери сущность — увидишь признак, действие, ошибку и совет.</p></div></aside><header class="mobile-header"><a class="brand" href="#">DOORS<span>GUIDES</span></a><button class="mobile-search" data-focus-search="true">⌕</button></header>${content}<nav class="bottom-nav">${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Visions', 'visions', '✦')}</nav></main>`;
+  const content = state.view === 'entities' ? renderEntities() : state.view === 'items' ? renderItems() : state.view === 'visions' ? renderVisions() : state.view === 'routes' ? simpleList('Маршруты', 'Короткий план для каждой локации.', routes, '→') : state.view === 'achievements' ? simpleList('Достижения', 'Отмечай полученные бейджи в игре.', achievements, '✓') : state.view === 'updates' ? simpleList('Обновления', 'Что изменилось в актуальной версии Doors.', updates, '◌') : state.view === 'settings' ? renderSettings() : renderGuide();
+  app.innerHTML = `<main class="shell"><aside class="sidebar"><a class="brand" href="#">DOORS<span>GUIDES</span></a><p class="version">VERSION 1.0 · ARCHIVES</p><nav>${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Visions', 'visions', '✦')}${navButton('Маршруты', 'routes', '→')}${navButton('Достижения', 'achievements', '✓')}${navButton('Обновления', 'updates', '◌')}${navButton('Настройки', 'settings', '⚙')}</nav><div class="sidebar-note"><b>Как пользоваться</b><p>Выбери сущность — увидишь признак, действие, ошибку и совет.</p></div></aside><header class="mobile-header"><a class="brand" href="#">DOORS<span>GUIDES</span></a><button class="mobile-search" data-focus-search="true">⌕</button></header>${state.view === 'entities' ? `<div class="cover"><img src="${cover}" alt="Чёрно-белый коридор Doors" /></div>` : ''}${content}<nav class="bottom-nav">${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Гайды', 'routes', '→')}${navButton('Ещё', 'settings', '⚙')}</nav></main>`;
   bind();
 }
 
@@ -57,9 +72,13 @@ function bind() {
   document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => { state.view = button.dataset.view; state.selected = null; state.query = ''; render(); }));
   document.querySelectorAll('[data-location]').forEach((button) => button.addEventListener('click', () => { state.location = button.dataset.location; state.query = ''; render(); }));
   document.querySelectorAll('[data-entity]').forEach((button) => button.addEventListener('click', () => { state.selected = allEntities().find((entity) => entity.name === button.dataset.entity); state.view = 'guide'; render(); }));
+  document.querySelectorAll('[data-favorite]').forEach((button) => button.addEventListener('click', (event) => { event.stopPropagation(); const saved = new Set(JSON.parse(localStorage.getItem('doors-favorites') || '[]')); saved.has(button.dataset.favorite) ? saved.delete(button.dataset.favorite) : saved.add(button.dataset.favorite); localStorage.setItem('doors-favorites', JSON.stringify([...saved])); render(); }));
+  document.querySelectorAll('[data-check]').forEach((button) => button.addEventListener('click', () => { const saved = new Set(JSON.parse(localStorage.getItem('doors-achievements') || '[]')); saved.has(button.dataset.check) ? saved.delete(button.dataset.check) : saved.add(button.dataset.check); localStorage.setItem('doors-achievements', JSON.stringify([...saved])); render(); }));
   document.querySelector('[data-back]')?.addEventListener('click', () => { state.view = 'entities'; render(); });
   document.querySelector('#search')?.addEventListener('input', (event) => { state.query = event.target.value; const at = event.target.selectionStart; render(); document.querySelector('#search')?.focus(); document.querySelector('#search')?.setSelectionRange(at, at); });
   document.querySelector('[data-focus-search]')?.addEventListener('click', () => { state.view = 'entities'; render(); document.querySelector('#search')?.focus(); });
+  document.querySelector('[data-font]')?.addEventListener('click', () => { const large = localStorage.getItem('doors-font') === 'large'; localStorage.setItem('doors-font', large ? 'normal' : 'large'); document.documentElement.dataset.font = large ? 'normal' : 'large'; render(); });
 }
 
+document.documentElement.dataset.font = localStorage.getItem('doors-font') || 'normal';
 render();
