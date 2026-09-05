@@ -1,7 +1,7 @@
 import './styles.css';
 import { sections, items, visions, routes, achievements, updates, signals, secrets, bosses, quizQuestions } from './data.js';
 import cover from './assets/archives-cover.png';
-import spriteSheet from './assets/entity-item-sheet.png';
+import spriteSheet from './assets/catalogue-sheet.png';
 
 const state = { view: 'entities', query: '', location: 'Отель', selected: null };
 const app = document.querySelector('#app');
@@ -13,9 +13,9 @@ function escape(text) { return text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;
 function entityCard(entity) {
   const favorites = JSON.parse(localStorage.getItem('doors-favorites') || '[]');
   const favorite = favorites.includes(entity.name);
-  const icon = [...entity.name].reduce((sum, char) => sum + char.codePointAt(0), 0) % 16;
-  const x = (icon % 4) * 33.333;
-  const y = Math.floor(icon / 4) * 33.333;
+  const icon = [...entity.name].reduce((sum, char) => sum + char.codePointAt(0), 0) % 36;
+  const x = (icon % 6) * 20;
+  const y = Math.floor(icon / 6) * 20;
   return `<button class="entity-card" data-entity="${escape(entity.name)}">
     <span class="card-art" style="background-image:url('${spriteSheet}');background-position:${x}% ${y}%"></span>
     <span class="eyebrow">${escape(entity.location)}</span><strong>${escape(entity.name)}</strong><small>${escape(entity.cue)}</small><span class="open">Открыть гайд →</span>
@@ -58,7 +58,7 @@ function renderItems() {
   const list = items.filter(([name, description]) => !search || `${name} ${description}`.toLowerCase().includes(search));
   return `<section class="content"><div class="page-title"><div><p class="eyebrow">БЕЗ УДАЛЁННОГО КОНТЕНТА</p><h1>Предметы</h1><p>Только действующие предметы после The Archives.</p></div><div class="count">${list.length} предмет</div></div>
   <label class="search"><span>⌕</span><input id="search" value="${escape(state.query)}" placeholder="Найти предмет" /></label>
-  <div class="item-list">${list.map(([name, description], index) => `<article class="item"><span class="item-art" style="background-image:url('${spriteSheet}');background-position:${(index % 4) * 33.333}% ${Math.floor((index % 16) / 4) * 33.333}%"></span><div><h2>${escape(name)}</h2><p>${escape(description)}</p></div></article>`).join('')}</div></section>`;
+  <div class="item-list">${list.map(([name, description], index) => `<article class="item"><span class="item-art" style="background-image:url('${spriteSheet}');background-position:${(index % 6) * 20}% ${Math.floor((index % 36) / 6) * 20}%"></span><div><h2>${escape(name)}</h2><p>${escape(description)}</p></div></article>`).join('')}</div></section>`;
 }
 
 function renderVisions() {
