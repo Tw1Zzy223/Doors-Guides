@@ -1,7 +1,7 @@
 import './styles.css';
 import { sections, items, visions, routes, achievements, updates, signals, secrets, bosses, quizQuestions, english } from './data.js';
 import cover from './assets/archives-cover.png';
-import spriteSheet from './assets/catalogue-sheet.png';
+import spriteSheet from './assets/catalogue-sheet-64.png';
 
 const labels = {
   ru: {
@@ -36,9 +36,9 @@ function escape(text) { return text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;
 function entityCard(entity) {
   const favorites = JSON.parse(localStorage.getItem('doors-favorites') || '[]');
   const favorite = favorites.includes(entity.name);
-  const icon = [...entity.name].reduce((sum, char) => sum + char.codePointAt(0), 0) % 36;
-  const x = (icon % 6) * 20;
-  const y = Math.floor(icon / 6) * 20;
+  const icon = allEntities().findIndex((entry) => entry.location === entity.location && entry.name === entity.name);
+  const x = (icon % 8) * (100 / 7);
+  const y = Math.floor(icon / 8) * (100 / 7);
   return `<button class="entity-card" data-entity="${escape(entity.name)}">
     <span class="card-art" style="background-image:url('${spriteSheet}');background-position:${x}% ${y}%"></span>
     <span class="eyebrow">${escape(entity.locationLabel || locationLabel(entity.location))}</span><strong>${escape(entity.name)}</strong><small>${escape(entity.cue)}</small><span class="open">${t('open')}</span>
@@ -84,7 +84,7 @@ function renderItems() {
   const list = d.items.filter(([name, description]) => !search || `${name} ${description}`.toLowerCase().includes(search));
   return `<section class="content"><div class="page-title"><div><p class="eyebrow">${state.language === 'ru' ? 'БЕЗ УДАЛЁННОГО КОНТЕНТА' : 'NO REMOVED CONTENT'}</p><h1>${t('itemsTitle')}</h1><p>${t('itemsIntro')}</p></div><div class="count">${list.length} ${t('itemCount')}</div></div>
   <label class="search"><span>⌕</span><input id="search" value="${escape(state.query)}" placeholder="${t('searchItem')}" /></label>
-  <div class="item-list">${list.map(([name, description], index) => `<article class="item"><span class="item-art" style="background-image:url('${spriteSheet}');background-position:${(index % 6) * 20}% ${Math.floor((index % 36) / 6) * 20}%"></span><div><h2>${escape(name)}</h2><p>${escape(description)}</p></div></article>`).join('')}</div></section>`;
+  <div class="item-list">${list.map(([name, description], index) => { const icon = index + 43; return `<article class="item"><span class="item-art" style="background-image:url('${spriteSheet}');background-position:${(icon % 8) * (100 / 7)}% ${Math.floor(icon / 8) * (100 / 7)}%"></span><div><h2>${escape(name)}</h2><p>${escape(description)}</p></div></article>`; }).join('')}</div></section>`;
 }
 
 function renderVisions() {
