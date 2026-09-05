@@ -2,7 +2,7 @@ import './styles.css';
 import { sections, items, visions, routes, achievements, updates } from './data.js';
 import cover from './assets/archives-cover.png';
 
-const state = { view: 'entities', query: '', location: 'Отель', selected: null };
+const state = { view: 'entities', query: '', location: 'Отель', selected: null, account: JSON.parse(localStorage.getItem('doors-account') || 'null') };
 const app = document.querySelector('#app');
 
 function allEntities() { return Object.entries(sections).flatMap(([location, list]) => list.map((entity) => ({ ...entity, location }))); }
@@ -27,6 +27,12 @@ function simpleList(title, intro, list, mark) {
 function renderSettings() {
   const large = localStorage.getItem('doors-font') === 'large';
   return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПРИЛОЖЕНИЕ</p><h1>Настройки</h1><p>Настрой справочник для удобного чтения.</p></div></div><div class="settings"><button data-font="true"><b>Размер текста</b><span>${large ? 'Крупный' : 'Обычный'}</span></button><button data-theme="true"><b>Оформление</b><span>Чёрно-белое</span></button><div><b>Язык</b><span>Русский — все гайды написаны по-русски</span></div></div></section>`;
+}
+
+function renderAccount() {
+  if (!state.account) return `<section class="content"><div class="page-title"><div><p class="eyebrow">ТВОЙ ПРОФИЛЬ</p><h1>Roblox-аккаунт</h1><p>Введи ник. Пароль не нужен и приложение его никогда не просит.</p></div></div><form class="account-form" id="link-account"><label>Ник Roblox<input name="nickname" required minlength="3" maxlength="20" placeholder="Например, Builderman" autocomplete="username" /></label><button type="submit">Привязать по нику</button><small>Ник останется на этом устройстве, пока ты сам не нажмёшь «Отвязать».</small></form></section>`;
+  const completed = JSON.parse(localStorage.getItem('doors-achievements') || '[]').length;
+  return `<section class="content"><div class="page-title"><div><p class="eyebrow">ПОДКЛЮЧЁННЫЙ ПРОФИЛЬ</p><h1>${escape(state.account.nickname)}</h1><p>Аккаунт запомнен на этом устройстве.</p></div></div><div class="profile-card"><div class="avatar">R</div><div><b>${escape(state.account.nickname)}</b><p>Локальный прогресс: ${completed} из ${achievements.length} отмеченных достижений.</p><p class="muted">Публичные бейджи Roblox появятся здесь после подключения облачной синхронизации.</p></div></div><button class="danger" data-unlink="true">Отвязать аккаунт от приложения</button></section>`;
 }
 
 function renderEntities() {
@@ -63,8 +69,8 @@ function renderGuide() {
 }
 
 function render() {
-  const content = state.view === 'entities' ? renderEntities() : state.view === 'items' ? renderItems() : state.view === 'visions' ? renderVisions() : state.view === 'routes' ? simpleList('Маршруты', 'Короткий план для каждой локации.', routes, '→') : state.view === 'achievements' ? simpleList('Достижения', 'Отмечай полученные бейджи в игре.', achievements, '✓') : state.view === 'updates' ? simpleList('Обновления', 'Что изменилось в актуальной версии Doors.', updates, '◌') : state.view === 'settings' ? renderSettings() : renderGuide();
-  app.innerHTML = `<main class="shell"><aside class="sidebar"><a class="brand" href="#">DOORS<span>GUIDES</span></a><p class="version">VERSION 1.0 · ARCHIVES</p><nav>${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Visions', 'visions', '✦')}${navButton('Маршруты', 'routes', '→')}${navButton('Достижения', 'achievements', '✓')}${navButton('Обновления', 'updates', '◌')}${navButton('Настройки', 'settings', '⚙')}</nav><div class="sidebar-note"><b>Как пользоваться</b><p>Выбери сущность — увидишь признак, действие, ошибку и совет.</p></div></aside><header class="mobile-header"><a class="brand" href="#">DOORS<span>GUIDES</span></a><button class="mobile-search" data-focus-search="true">⌕</button></header>${state.view === 'entities' ? `<div class="cover"><img src="${cover}" alt="Чёрно-белый коридор Doors" /></div>` : ''}${content}<nav class="bottom-nav">${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Гайды', 'routes', '→')}${navButton('Ещё', 'settings', '⚙')}</nav></main>`;
+  const content = state.view === 'entities' ? renderEntities() : state.view === 'items' ? renderItems() : state.view === 'visions' ? renderVisions() : state.view === 'routes' ? simpleList('Маршруты', 'Короткий план для каждой локации.', routes, '→') : state.view === 'achievements' ? simpleList('Достижения', 'Отмечай полученные бейджи в игре.', achievements, '✓') : state.view === 'updates' ? simpleList('Обновления', 'Что изменилось в актуальной версии Doors.', updates, '◌') : state.view === 'settings' ? renderSettings() : state.view === 'account' ? renderAccount() : renderGuide();
+  app.innerHTML = `<main class="shell"><aside class="sidebar"><a class="brand" href="#">DOORS<span>GUIDES</span></a><p class="version">VERSION 1.0 · ARCHIVES</p><nav>${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Visions', 'visions', '✦')}${navButton('Маршруты', 'routes', '→')}${navButton('Достижения', 'achievements', '✓')}${navButton('Профиль', 'account', '♙')}${navButton('Обновления', 'updates', '◌')}${navButton('Настройки', 'settings', '⚙')}</nav><div class="sidebar-note"><b>Как пользоваться</b><p>Выбери сущность — увидишь признак, действие, ошибку и совет.</p></div></aside><header class="mobile-header"><a class="brand" href="#">DOORS<span>GUIDES</span></a><button class="mobile-search" data-focus-search="true">⌕</button></header>${state.view === 'entities' ? `<div class="cover"><img src="${cover}" alt="Чёрно-белый коридор Doors" /></div>` : ''}${content}<nav class="bottom-nav">${navButton('Сущности', 'entities', '◉')}${navButton('Предметы', 'items', '◇')}${navButton('Профиль', 'account', '♙')}${navButton('Ещё', 'settings', '⚙')}</nav></main>`;
   bind();
 }
 
@@ -78,6 +84,8 @@ function bind() {
   document.querySelector('#search')?.addEventListener('input', (event) => { state.query = event.target.value; const at = event.target.selectionStart; render(); document.querySelector('#search')?.focus(); document.querySelector('#search')?.setSelectionRange(at, at); });
   document.querySelector('[data-focus-search]')?.addEventListener('click', () => { state.view = 'entities'; render(); document.querySelector('#search')?.focus(); });
   document.querySelector('[data-font]')?.addEventListener('click', () => { const large = localStorage.getItem('doors-font') === 'large'; localStorage.setItem('doors-font', large ? 'normal' : 'large'); document.documentElement.dataset.font = large ? 'normal' : 'large'; render(); });
+  document.querySelector('#link-account')?.addEventListener('submit', (event) => { event.preventDefault(); const nickname = new FormData(event.currentTarget).get('nickname').trim(); state.account = { nickname, linkedAt: new Date().toISOString() }; localStorage.setItem('doors-account', JSON.stringify(state.account)); render(); });
+  document.querySelector('[data-unlink]')?.addEventListener('click', () => { localStorage.removeItem('doors-account'); state.account = null; render(); });
 }
 
 document.documentElement.dataset.font = localStorage.getItem('doors-font') || 'normal';
